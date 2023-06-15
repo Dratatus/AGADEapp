@@ -1,3 +1,6 @@
+using AGADEapp.Data.Configration;
+using Microsoft.EntityFrameworkCore;
+
 namespace AGADEapp
 {
     public class Program
@@ -12,6 +15,7 @@ namespace AGADEapp
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddDbContext<FileDBContext>(o => o.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer")));
 
             var app = builder.Build();
 
