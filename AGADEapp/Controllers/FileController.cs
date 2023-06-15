@@ -3,6 +3,7 @@ using AGADEapp.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Runtime.InteropServices;
 
 namespace AGADEapp.Controllers
 {
@@ -24,7 +25,7 @@ namespace AGADEapp.Controllers
             return files;
         }
 
-        [HttpGet("id")]
+        [HttpGet("{id}")]
         [ProducesResponseType(typeof(DataFile), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetFileById(int id)
@@ -42,6 +43,42 @@ namespace AGADEapp.Controllers
             await _fileDBcontext.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetFileById), new { id = file.Id }, file);
+        }
+
+        [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> UpdateFile(int id, DataFile file)
+        {
+            var _file = await _fileDBcontext.DataFile.FindAsync(id);
+
+            if (file == null)
+            {
+                return BadRequest();
+            }
+
+            _fileDBcontext.Entry(file).State = EntityState.Modified;
+            await _fileDBcontext.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var fileToDelete = await _fileDBcontext.DataFile.FindAsync(id);
+
+            if (fileToDelete == null)
+            {
+                return NotFound();
+            }
+
+            _fileDBcontext.DataFile.Remove(fileToDelete);
+            await _fileDBcontext.SaveChangesAsync();
+
+            return NoContent();
         }
 
     }
