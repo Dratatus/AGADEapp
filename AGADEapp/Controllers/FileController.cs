@@ -11,8 +11,8 @@ namespace AGADEapp.Controllers
     [ApiController]
     public class FileController : ControllerBase
     {
-        private readonly UserDBContext _fileDBcontext;
-        public FileController(UserDBContext dBContext)
+        private readonly FileDBContext _fileDBcontext;
+        public FileController(FileDBContext dBContext)
         {
             _fileDBcontext = dBContext;
         }
