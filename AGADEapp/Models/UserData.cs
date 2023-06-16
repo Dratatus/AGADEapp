@@ -6,6 +6,8 @@ namespace AGADEapp.Models
     {
         public int Id { get; set; }
 
+        bool IsAdmin { get; set; }
+
         string Nickname { get; set; }
 
         string Name { get; set; }
