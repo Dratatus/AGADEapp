@@ -4,6 +4,7 @@ namespace AGADEapp.Models
 {
     public class HistoryElement
     {
+        public int Id { get; set; }
         public OperationType Action { get; set; }
 
         public string User { get; set; }
