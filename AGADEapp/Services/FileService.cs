@@ -1,6 +1,7 @@
 ﻿using AGADEapp.Data.Configration;
 using AGADEapp.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Runtime.CompilerServices;
 
 namespace AGADEapp.Services
 {
@@ -13,18 +14,18 @@ namespace AGADEapp.Services
         }
 
         //Dodaje plik do bazy
-        public DataFile CreateFile(DataFile file)
+        public async Task<DataFile> CreateFile(DataFile file)
         {
-            _fileDBcontext.DataFile.AddAsync(file);
-            _fileDBcontext.SaveChangesAsync();
+            await _fileDBcontext.DataFile.AddAsync(file);
+            await _fileDBcontext.SaveChangesAsync();
             return file;
         }
 
         //Ustawiłem by nie zwracała niczego, więc albo trzeba jej używać w try catch albo zmodyfikowac by cos zwracała
         //Usuwa plik z bazy
-        public void DeleteFile(int id)
+        public async Task DeleteFile(int id)
         {
-            var dataFileToDelete = _fileDBcontext.DataFile.Find(id);
+            var dataFileToDelete = await _fileDBcontext.DataFile.FindAsync(id);
             if (dataFileToDelete is not null)
             {
                 _fileDBcontext.DataFile.Remove(dataFileToDelete);
@@ -33,13 +34,13 @@ namespace AGADEapp.Services
         }
 
         //Zwraca wszystkie pliki
-        public List<DataFile> GetAllFiles()
+        public async Task<List<DataFile>> GetAllFiles()
         {
             return _fileDBcontext.DataFile.ToList();
         }
 
         //Zwraca konkretny plik po id
-        public DataFile GetFileById(int id)
+        public async Task<DataFile> GetFileById(int id)
         {
             var file = _fileDBcontext.DataFile.Include(a => a.DataFileHistory).FirstOrDefault(m => m.Id == id);
             return file ?? null;
@@ -47,26 +48,17 @@ namespace AGADEapp.Services
 
         //Nie wiem jak to do końca działa ale powinno, jak z tym entityState.Modified dziala lepiej to można zmienić
         //Aktualizuje konkretny plik po id danymi z załączonego DataFile
-        public DataFile UpdateFile(int id, DataFile file)
+        public async Task<DataFile> UpdateFile(int id, DataFile file)
         {
-            var dataFileToUpdate = _fileDBcontext.DataFile.Find(id);
+            var fileToEdit = await _fileDBcontext.DataFile.FindAsync(id);
+            fileToEdit.Title = file.Title;
+            fileToEdit.ContentType = file.ContentType;
+            fileToEdit.Content = file.Content;
+            fileToEdit.Author = file.Author;
+            fileToEdit.Status = file.Status;
+            await _fileDBcontext.SaveChangesAsync();
 
-            if (dataFileToUpdate == null)
-            {
-                dataFileToUpdate.Title = file.Title;
-                dataFileToUpdate.Status = file.Status;
-                dataFileToUpdate.Author = file.Author;
-                dataFileToUpdate.FileType = file.FileType;
-                dataFileToUpdate.Content = file.Content;
-                dataFileToUpdate.ContentType = file.ContentType;
-
-                // Tutaj trzeba dodać dodanie wpisu do DataFileHistory
-
-
-                _fileDBcontext.SaveChanges();
-                return dataFileToUpdate;
-            }
-            return null;
+            return fileToEdit;
         }
     }
 }

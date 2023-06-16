@@ -17,6 +17,8 @@
 
   <ItemGroup>
     <Folder Include="Data\Repositories\" />
+    <Folder Include="wwwroot\" />
+    <Folder Include="wwwroot\Files\" />
   </ItemGroup>
 
 </Project>

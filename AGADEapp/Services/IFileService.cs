@@ -4,14 +4,14 @@ namespace AGADEapp.Services
 {
     public interface IFileService
     {
-        List<DataFile> GetAllFiles();
+        Task<List<DataFile>> GetAllFiles();
 
-        DataFile? GetFileById(int id);
+        Task<DataFile?> GetFileById(int id);
 
-        DataFile CreateFile(DataFile file);
+        Task<DataFile> CreateFile(DataFile file);
 
-        DataFile? UpdateFile(int id, DataFile file);
+        Task<DataFile?> UpdateFile(int id, DataFile file);
 
-        void DeleteFile(int id);
+        Task DeleteFile(int id);
     }
 }

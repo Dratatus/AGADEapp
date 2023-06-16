@@ -1,4 +1,5 @@
 using AGADEapp.Data.Configration;
+using AGADEapp.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace AGADEapp
@@ -12,6 +13,10 @@ namespace AGADEapp
             // Add services to the container.
 
             builder.Services.AddControllers();
+
+            builder.Services.AddScoped<IFileService, FileService>();
+            builder.Services.AddScoped<IUserService, UserService>();
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
@@ -34,6 +39,8 @@ namespace AGADEapp
             }
 
             app.UseHttpsRedirection();
+
+            app.UseStaticFiles();
 
             app.UseAuthorization();
 

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Runtime.InteropServices;
+using AGADEapp.Services;
 
 namespace AGADEapp.Controllers
 {
@@ -11,18 +12,23 @@ namespace AGADEapp.Controllers
     [ApiController]
     public class FileController : ControllerBase
     {
+        private readonly IFileService _fileService;
+        private readonly IUserService _userService;
         private readonly FileDBContext _fileDBcontext;
-        public FileController(FileDBContext dBContext)
+
+        private static IWebHostEnvironment _webHostEnvironment;
+        public FileController(FileDBContext dBContext, IFileService fileService, IUserService userService, IWebHostEnvironment webHostEnvironment)
         {
+            _fileService = fileService;
+            _userService = userService;
             _fileDBcontext = dBContext;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         [HttpGet]
         public async Task<IEnumerable<DataFile>> GetAll()
         {
-            var files = await _fileDBcontext.DataFile.ToListAsync();
-
-            return files;
+            return await _fileService.GetAllFiles();
         }
 
         [HttpGet("{id}")]
@@ -30,19 +36,58 @@ namespace AGADEapp.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetFileById(int id)
         {
-            var file = await _fileDBcontext.DataFile.FindAsync(id);
-
+            var file = await _fileService.GetFileById(id);
             return file == null ? NotFound() : Ok(file);
         }
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> Upload(DataFile file)
+        public async Task<IActionResult> Create(DataFile file)
         {
-            await _fileDBcontext.DataFile.AddAsync(file);
-            await _fileDBcontext.SaveChangesAsync();
+            var created = await _fileService.CreateFile(file);
+            return created == null ? NotFound() : Ok(created);
+        }
 
-            return CreatedAtAction(nameof(GetFileById), new { id = file.Id }, file);
+        [HttpPost]
+        [Route("upload")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public async Task<IActionResult> Upload([FromForm] UploadFile obj)
+        {
+            if (obj.file.Length > 0)
+            {
+                try
+                {
+                    if (!Directory.Exists(_webHostEnvironment.WebRootPath + "\\Files\\"))
+                    {
+                        Directory.CreateDirectory(_webHostEnvironment.WebRootPath + "\\Files\\");
+                    }
+
+                    using (FileStream fileStream = System.IO.File.Create(_webHostEnvironment.WebRootPath + "\\Files\\" + obj.file.FileName))
+                    {
+                        obj.file.CopyTo(fileStream);
+                        fileStream.Flush();
+
+                        var edit = await _fileService.GetFileById(obj.dataFileId);
+                        edit.Content = obj.file.FileName;
+                        edit.ContentType = obj.file.ContentType;
+                        await _fileService.UpdateFile(obj.dataFileId, edit);
+
+                        return Ok();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex.Message);
+                }
+            }
+            else { return BadRequest(); }
+        }
+
+        [HttpGet("{id}/download")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public async Task<IActionResult> Download(int id)
+        {
+            throw new NotImplementedException();
         }
 
         [HttpPut("{id}")]
@@ -50,17 +95,21 @@ namespace AGADEapp.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateFile(int id, DataFile file)
         {
-            var _file = await _fileDBcontext.DataFile.FindAsync(id);
+            //var _file = await _fileDBcontext.DataFile.FindAsync(id);
 
-            if (file == null)
-            {
-                return BadRequest();
-            }
+            //if (file == null)
+            //{
+            //    return BadRequest();
+            //}
 
-            _fileDBcontext.Entry(file).State = EntityState.Modified;
-            await _fileDBcontext.SaveChangesAsync();
+            //_fileDBcontext.Entry(file).State = EntityState.Modified;
+            //await _fileDBcontext.SaveChangesAsync();
 
-            return NoContent();
+            //return NoContent();
+
+            var _file = await _fileService.UpdateFile(id, file);
+
+            return _file == null ? NotFound() : Ok(file);
         }
 
         [HttpDelete("{id}")]
@@ -68,18 +117,14 @@ namespace AGADEapp.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
-            var fileToDelete = await _fileDBcontext.DataFile.FindAsync(id);
-
-            if (fileToDelete == null)
+            try
             {
-                return NotFound();
+                await _fileService.DeleteFile(id);
+            } catch 
+            {
+                return BadRequest();
             }
-
-            _fileDBcontext.DataFile.Remove(fileToDelete);
-            await _fileDBcontext.SaveChangesAsync();
-
-            return NoContent();
+            return Ok();
         }
-
     }
 }
