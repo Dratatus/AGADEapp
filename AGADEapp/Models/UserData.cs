@@ -6,13 +6,13 @@ namespace AGADEapp.Models
     {
         public int Id { get; set; }
 
-        bool IsAdmin { get; set; }
+        public bool IsAdmin { get; set; }
 
-        string Nickname { get; set; }
+        public string Nickname { get; set; }
 
-        string Name { get; set; }
+        public string Name { get; set; }
 
-        string Surname { get; set; }
+        public string Surname { get; set; }
 
         // Zadeklarowana relacja do User
         public int UserId { get; set; } // Klucz obcy
