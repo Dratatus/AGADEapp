@@ -19,5 +19,8 @@ namespace AGADEapp.Models
 
         public FileStatus Status { get; set; }
 
+        // Zadeklarowana relacja do DataFileHistory
+        public DataFileHistory? DataFileHistory { get; set; } // Referencja do DataFileHistory
+
     }
 }

@@ -1,5 +1,6 @@
 ﻿using AGADEapp.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 
 namespace AGADEapp.Data.Configration
 {
@@ -11,5 +12,7 @@ namespace AGADEapp.Data.Configration
         }
 
         public DbSet<DataFile> DataFile { get; set; }
+        public DbSet<DataFileHistory> DataFileHistory { get; set; }
+        public DbSet<HistoryElement> HistoryElement { get; set; }
     }
 }
