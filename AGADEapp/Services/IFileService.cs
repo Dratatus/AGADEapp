@@ -6,11 +6,11 @@ namespace AGADEapp.Services
     {
         List<DataFile> GetAllFiles();
 
-        DataFile GetFileById(int id);
+        DataFile? GetFileById(int id);
 
         DataFile CreateFile(DataFile file);
 
-        DataFile UpdateFile(int id, DataFile file);
+        DataFile? UpdateFile(int id, DataFile file);
 
         void DeleteFile(int id);
     }
