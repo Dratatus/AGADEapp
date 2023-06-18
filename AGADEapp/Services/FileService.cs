@@ -36,7 +36,7 @@ namespace AGADEapp.Services
         //Zwraca wszystkie pliki
         public async Task<List<DataFile>> GetAllFiles()
         {
-            return _fileDBcontext.DataFile.ToList();
+            return  _fileDBcontext.DataFile.ToList();
         }
 
         //Zwraca konkretny plik po id
@@ -51,11 +51,13 @@ namespace AGADEapp.Services
         public async Task<DataFile> UpdateFile(int id, DataFile file)
         {
             var fileToEdit = await _fileDBcontext.DataFile.FindAsync(id);
+
             fileToEdit.Title = file.Title;
             fileToEdit.ContentType = file.ContentType;
             fileToEdit.Content = file.Content;
             fileToEdit.Author = file.Author;
             fileToEdit.Status = file.Status;
+
             await _fileDBcontext.SaveChangesAsync();
 
             return fileToEdit;

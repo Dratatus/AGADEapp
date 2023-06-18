@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Runtime.InteropServices;
 using AGADEapp.Services;
+using System.ComponentModel;
 
 namespace AGADEapp.Controllers
 {
@@ -26,12 +27,14 @@ namespace AGADEapp.Controllers
         }
 
         [HttpGet]
+        [DisplayName("Get All")]
         public async Task<IEnumerable<DataFile>> GetAll()
         {
             return await _fileService.GetAllFiles();
         }
 
         [HttpGet("{id}")]
+        [DisplayName("Get File by ID")]
         [ProducesResponseType(typeof(DataFile), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetFileById(int id)
@@ -83,11 +86,34 @@ namespace AGADEapp.Controllers
             else { return BadRequest(); }
         }
 
+
         [HttpGet("{id}/download")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Download(int id)
         {
-            throw new NotImplementedException();
+            var file = await _fileService.GetFileById(id);
+
+            if (file == null)
+            {
+                return NotFound();
+            }
+
+            var filePath = Path.Combine(_webHostEnvironment.WebRootPath, "Files", file.Content);
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound();
+            }
+
+            var memoryStream = new MemoryStream();
+            using (var fileStream = new FileStream(filePath, FileMode.Open))
+            {
+                await fileStream.CopyToAsync(memoryStream);
+            }
+            memoryStream.Position = 0;
+
+            return File(memoryStream, file.ContentType, file.Content);
         }
 
         [HttpPut("{id}")]
