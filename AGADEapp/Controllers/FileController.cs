@@ -58,8 +58,17 @@ namespace AGADEapp.Controllers
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Create([FromForm]DataFileInit file)
         {
+            if (file.Author == null)
+            {
+                if (file.Status != 0)
+                {
+                    return Unauthorized();
+                }
+            }
+
             var created = await _fileService.CreateFile(DataFile.of(file));
             return created == null ? NotFound() : Ok(created);
         }

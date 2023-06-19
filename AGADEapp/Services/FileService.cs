@@ -1,6 +1,7 @@
 ﻿using AGADEapp.Data.Configration;
 using AGADEapp.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Runtime.CompilerServices;
 
 namespace AGADEapp.Services
@@ -8,6 +9,7 @@ namespace AGADEapp.Services
     public class FileService : IFileService
     {
         private readonly FileDBContext _fileDBcontext;
+
         public FileService(FileDBContext dBContext)
         {
             _fileDBcontext = dBContext;
@@ -22,15 +24,6 @@ namespace AGADEapp.Services
             };
 
             file.DataFileHistory.Actions.Add(new HistoryElement { Action = OperationType.Create, User = file.Author });
-
-            //DataFileHistory newData = new DataFileHistory 
-            //{
-            //    DataFileId = file.Id
-            //};
-
-            //newData.Actions.Add(new HistoryElement { Action = OperationType.Create, User = null });
-
-            //file.DataFileHistory = newData;
 
             await _fileDBcontext.DataFile.AddAsync(file);
             await _fileDBcontext.SaveChangesAsync();

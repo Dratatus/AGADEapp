@@ -7,8 +7,7 @@ namespace AGADEapp.Models.InputModels
         [Required]
         public string Title { get; set; }
 
-        [Required]
-        public string Author { get; set; }
+        public string? Author { get; set; }
 
         public FileStatus Status { get; set; } = FileStatus.Public;
     }

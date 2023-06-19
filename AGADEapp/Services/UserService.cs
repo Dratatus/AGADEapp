@@ -8,6 +8,7 @@ namespace AGADEapp.Services
     public class UserService : IUserService
     {
         private readonly UserDBContext _userDBcontext;
+
         public UserService(UserDBContext dBContext)
         {
             _userDBcontext = dBContext;
@@ -27,7 +28,7 @@ namespace AGADEapp.Services
         //Nie mam pojęcia jak ma działać logout w tym wypadku
         public Task Logout()
         {
-            throw new NotImplementedException();
+            throw new Exception();
         }
 
         //Tworzy nowego użytkownika oraz zwraca obiekt
