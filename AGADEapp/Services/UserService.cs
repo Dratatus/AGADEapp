@@ -25,13 +25,13 @@ namespace AGADEapp.Services
             throw new Exception("Invalid login or password");
         }
 
-        //Nie mam pojęcia jak ma działać logout w tym wypadku
+        //Zwraca informację o poprawnym wylogowaniu
         public Task Logout()
         {
             throw new Exception();
         }
 
-        //Tworzy nowego użytkownika oraz zwraca obiekt
+        //Tworzy nowego użytkownika oraz zwraca obiekt User
         public async Task<User> Register(UserRegister user)
         {
             User newUser = User.of(user);
@@ -53,8 +53,7 @@ namespace AGADEapp.Services
             return newUser;
         }
 
-        //Nie wiem czy usunięcie Usera automatycznie usuwa UserData, trzeba przetestować
-        //Usuwa użytkownika po id
+        //Usuwa użytkownika po podanym id
         public async Task RemoveUser(int id)
         {
             var userToDelete = await _userDBcontext.User.FindAsync(id);
@@ -65,21 +64,26 @@ namespace AGADEapp.Services
             }
         }
 
+        //Zwraca listę wszystkich użytkowników
         public async Task<List<User>> GetAllUsers()
         {
             return _userDBcontext.User.Include(a => a.UserData).ToList();
         }
 
+        //Zwraca informację czy dany użytkownik ma prawa administratora
         public async Task<bool> IsAdmin(int? id)
         {
+            if(id == null) return false;
             var isAdmin = _userDBcontext.User.Include(a => a.UserData).FirstOrDefault(m => m.Id == id).UserData.IsAdmin;
             return isAdmin;
         }
 
-        public async Task<string> GetUserName(int? id)
+        //Zwraca login danego użytkownika na podstawie podanego id
+        public async Task<string?> GetUserName(int? id)
         {
+            if (id == null) return null;
             var username = _userDBcontext.User.FirstOrDefault(m => m.Id == id).Login;
-            return username != null ? username : null;
+            return username;
         }
     }
 }

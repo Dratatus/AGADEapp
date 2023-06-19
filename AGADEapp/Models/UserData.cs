@@ -20,8 +20,5 @@ namespace AGADEapp.Models
 
         // Zadeklarowana relacja do User
         public virtual int UserId { get; set; } // Klucz obcy
-
-        //public int UserId { get; set; } // Klucz obcy
-        //public User User { get; set; } = null!; // Referencja do User
     }
 }

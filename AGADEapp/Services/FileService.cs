@@ -14,7 +14,7 @@ namespace AGADEapp.Services
             _fileDBcontext = dBContext;
         }
 
-        //Dodaje plik do bazy
+        //Dodaje plik do bazy danych
         public async Task<DataFile> CreateFile(DataFile file)
         {
             file.DataFileHistory = new DataFileHistory
@@ -28,7 +28,6 @@ namespace AGADEapp.Services
             return file;
         }
 
-        //Ustawiłem by nie zwracała niczego, więc albo trzeba jej używać w try catch albo zmodyfikowac by cos zwracała
         //Usuwa plik z bazy
         public async Task DeleteFile(int id)
         {
@@ -46,7 +45,7 @@ namespace AGADEapp.Services
             return  _fileDBcontext.DataFile.Include(a => a.DataFileHistory).ToList();
         }
 
-        //Zwraca pliki na podstawie userId
+        //Zwraca wszystkie upoważnione pliki na podstawie użytkownika
         public async Task<List<DataFile>> GetFiles(bool? isAdmin, string? username)
         {
             if(isAdmin == null)
@@ -60,7 +59,7 @@ namespace AGADEapp.Services
             return _fileDBcontext.DataFile.Include(a => a.DataFileHistory).Where(a => a.Author == username || a.Status != FileStatus.Confidential).ToList();
         }
 
-        //Zwraca pliki na podstawie userId
+        //Zwraca pliki danego użytkownika
         public async Task<List<DataFile>> GetMyFiles(string username)
         {
             return _fileDBcontext.DataFile.Include(a => a.DataFileHistory).Where(a => a.Author == username).ToList();
@@ -73,34 +72,70 @@ namespace AGADEapp.Services
             return file ?? null;
         }
 
-        //Nie wiem jak to do końca działa ale powinno, jak z tym entityState.Modified dziala lepiej to można zmienić
-        //Aktualizuje konkretny plik po id danymi z załączonego DataFile
-        public async Task<DataFile> UpdateFile(int id, DataFile file)
+        //Aktualizuje konkretny plik po id, danymi z załączonego DataFile
+        public async Task<DataFile> UpdateFile(int id, DataFile file, string username)
         {
-            var fileToEdit = await _fileDBcontext.DataFile.FindAsync(id);
+            var fileToEdit = _fileDBcontext.DataFile.Include(a => a.DataFileHistory).FirstOrDefault(a => a.Id == id);
 
             fileToEdit.Title = file.Title;
-            fileToEdit.ContentType = file.ContentType;
-            fileToEdit.Content = file.Content;
-            fileToEdit.Author = file.Author;
             fileToEdit.Status = file.Status;
+
+            fileToEdit.DataFileHistory.Actions.Add(new HistoryElement { Action = OperationType.Update, User = username });
 
             await _fileDBcontext.SaveChangesAsync();
 
             return fileToEdit;
         }
 
+        //Wprowadza dane wysłanego załącznika do odpowiedniego DataFile
         public async Task<DataFile> Upload(string username, UploadFile obj, int fileId)
         {
             var edit = await GetFileById(fileId);
             edit.Content = obj.file.FileName;
             edit.ContentType = obj.file.ContentType;
-            await UpdateFile(fileId, edit);
+            await UpdateFile(fileId, edit, username);
 
             edit.DataFileHistory.Actions.Add(new HistoryElement { Action = OperationType.Upload, User = username });
             await _fileDBcontext.SaveChangesAsync();
 
             return edit;
+        }
+
+        //Wprowadza wpis do historii działań na pliku po udanym pobraniu załącznika
+        public async Task ConfirmDownload(string username, int fileId)
+        {
+            var edit = await GetFileById(fileId);
+            edit.DataFileHistory.Actions.Add(new HistoryElement { Action = OperationType.Download, User = username });
+            await _fileDBcontext.SaveChangesAsync();
+        }
+
+        //Usuwa załącznik danego DataFile
+        public async Task RemoveAttachment(string username, int fileId)
+        {
+            var edit = await GetFileById(fileId);
+            edit.Content = null;
+            edit.ContentType = null;
+            edit.DataFileHistory.Actions.Add(new HistoryElement { Action = OperationType.RemoveAttachment, User = username });
+            await _fileDBcontext.SaveChangesAsync();
+        }
+
+        //Zwraca informacje czy dany użytkownik jest właścicielem pliku
+        public async Task<bool> IsOwner(string? username, int fileId)
+        {
+            if (username == null) return false;
+            var file = await GetFileById(fileId);
+            if (file.Author == username)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        //Zwraca historie działań na danym pliku
+        public async Task<List<HistoryElement>>? GetFileHistory(int fileId)
+        {
+            var actions = _fileDBcontext.DataFileHistory.FirstOrDefault(a => a.DataFileId == fileId).Actions.ToList();
+            return actions;
         }
     }
 }

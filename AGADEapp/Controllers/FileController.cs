@@ -25,6 +25,7 @@ namespace AGADEapp.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
+        //Zwraca wszystkie dozwolone do wglądu wpisy DataFile na podstawie uprawnień po podanym userId
         [HttpGet]
         [DisplayName("Get All")]
         public async Task<IEnumerable<DataFile>> GetAll([FromQuery] int? userId)
@@ -39,29 +40,13 @@ namespace AGADEapp.Controllers
             }
         }
 
-        [HttpGet]
-        [Route("{userId}/UserFiles")]
-        public async Task<IEnumerable<DataFile>> GetAllUser([FromRoute] int? userId)
-        {
-            return await _fileService.GetMyFiles(await _userService.GetUserName(userId));
-        }
-
-        [HttpGet("{id}")]
-        [DisplayName("Get File by ID")]
-        [ProducesResponseType(typeof(DataFile), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetFileById(int id)
-        {
-            var file = await _fileService.GetFileById(id);
-            return file == null ? NotFound() : Ok(file);
-        }
-
+        //Tworzy wpis DataFile z podaną nazwą i autorem, zwraca status 401 w przypadku wybrania statusu innego niż publiczny przez użytkownika anonimowego
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Create([FromForm]DataFileInit file)
+        public async Task<IActionResult> Create([FromForm]DataFileInit file, [FromQuery] int userId)
         {
-            if (file.Author == null)
+            if (_userService.GetUserName(userId) == null)
             {
                 if (file.Status != 0)
                 {
@@ -69,17 +54,22 @@ namespace AGADEapp.Controllers
                 }
             }
 
-            var created = await _fileService.CreateFile(DataFile.of(file));
+            var created = await _fileService.CreateFile(DataFile.of(file, await _userService.GetUserName(userId)));
             return created == null ? NotFound() : Ok(created);
         }
 
+        //zapisuje w katalogu wwwroot przesłany plik, oraz jego informacjie w odpowiednim wpisie DataFile, przyznaje dostęp na podstawie ID użytkownika
         [HttpPost]
-        [Route("{fileId}/upload")]
+        [Route("{fileId}/Upload_attachment")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<IActionResult> Upload([FromRoute]int fileId, [FromForm]UploadFile obj, [FromForm] int userId)
         {
             if (obj.file.Length > 0)
             {
+                if (!Authorize(userId, fileId, _fileService.GetFileById(fileId).Result.Status))
+                {
+                    return Unauthorized();
+                }
                 try
                 {
                     if (!Directory.Exists(_webHostEnvironment.WebRootPath + "\\Files\\"))
@@ -105,17 +95,22 @@ namespace AGADEapp.Controllers
             else { return BadRequest(); }
         }
 
-
-        [HttpGet("{fileId}/download")]
+        //Sprawdza czy podany użytkownik jest upoważniony do pobrania załączonego pliku oraz przesyła go po poprawnej autoryzacji
+        [HttpGet("{fileId}/Download_attachment")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Download(int fileId)
+        public async Task<IActionResult> Download(int fileId, [FromQuery] int? userId)
         {
             var file = await _fileService.GetFileById(fileId);
 
             if (file == null)
             {
                 return NotFound();
+            }
+
+            if (!Authorize(userId, fileId, file.Status))
+            {
+                return Unauthorized();
             }
 
             var filePath = Path.Combine(_webHostEnvironment.WebRootPath, "Files", file.Content);
@@ -132,44 +127,111 @@ namespace AGADEapp.Controllers
             }
             memoryStream.Position = 0;
 
+            await _fileService.ConfirmDownload(await _userService.GetUserName(userId), fileId);
+
             return File(memoryStream, file.ContentType, file.Content);
         }
 
-        [HttpPut("{id}")]
+        //Sprawdza czy załączony użytkownik jest administratorem oraz usuwa plik po poprawnej weryfikacji
+        [HttpDelete("{fileId}/Remove_attachment")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> RemoveAttachment(int fileId, [FromQuery] int? userId)
+        {
+            var file = await _fileService.GetFileById(fileId);
+
+            if (file == null)
+            {
+                return NotFound();
+            }
+
+            if (await _userService.IsAdmin(userId) == false)
+            {
+                return Unauthorized();
+            }
+
+            var filePath = Path.Combine(_webHostEnvironment.WebRootPath, "Files", file.Content);
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound();
+            }
+
+            System.IO.File.Delete(filePath);
+
+            await _fileService.RemoveAttachment(await _userService.GetUserName(userId), fileId);
+
+            return Ok();
+        }
+
+        //Sprawdza czy podany użytkownik jest upoważniony do pobrania załączonego pliku oraz przesyła go po poprawnej autoryzacji
+        [HttpGet("{fileId}/See_history")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ShowHistory(int fileId, [FromQuery] int userId)
+        {
+            if (!await _userService.IsAdmin(userId))
+            {
+                return Unauthorized();
+            }
+            var history = await _fileService.GetFileHistory(fileId);
+            if (history == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(history);
+        }
+
+        //Aktualizuje informacje o danym pliku w oparciu o uprawnienia podanego użytkownika
+        [HttpPut("{fileId}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UpdateFile(int id, DataFile file)
+        public async Task<IActionResult> UpdateFile(int fileId, DataFileInit file, [FromQuery] int userId)
         {
-            //var _file = await _fileDBcontext.DataFile.FindAsync(id);
-
-            //if (file == null)
-            //{
-            //    return BadRequest();
-            //}
-
-            //_fileDBcontext.Entry(file).State = EntityState.Modified;
-            //await _fileDBcontext.SaveChangesAsync();
-
-            //return NoContent();
-
-            var _file = await _fileService.UpdateFile(id, file);
-
+            if(!await _userService.IsAdmin(userId) && !await _fileService.IsOwner(await _userService.GetUserName(userId), fileId))
+            {
+                return Unauthorized();
+            }
+            var _file = await _fileService.UpdateFile(fileId, DataFile.of(file, await _userService.GetUserName(userId)), await _userService.GetUserName(userId));
             return _file == null ? NotFound() : Ok(file);
         }
 
-        [HttpDelete("{id}")]
+        //Usuwa dany wpis o pliku (tylko admin)
+        [HttpDelete("{fileId}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int fileId, [FromQuery] int userId)
         {
+            if (await _userService.IsAdmin(userId))
+            {
+                return Unauthorized();
+            }
             try
             {
-                await _fileService.DeleteFile(id);
+                await _fileService.DeleteFile(fileId);
             } catch 
             {
                 return BadRequest();
             }
             return Ok();
+        }
+
+        //Zwraca czy podany użytkownik jest upoważniony do danego pliku
+        private bool Authorize(int? userid, int fileid, FileStatus status)
+        {
+            var isowner = _fileService.IsOwner(_userService.GetUserName(userid).Result, fileid);
+            var isadmin = _userService.IsAdmin(userid).Result;
+
+            if (isowner.Result || isadmin)
+            {
+                return true;
+            }
+            if (userid != null && status != FileStatus.Confidential)
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

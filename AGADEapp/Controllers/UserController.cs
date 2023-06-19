@@ -11,12 +11,15 @@ namespace AGADEapp.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IFileService _fileService;
 
-        public UserController(IUserService userService)
+        public UserController(IUserService userService, IFileService fileService)
         {
             _userService = userService;
+            _fileService = fileService;
         }
 
+        //Zwraca wszystkich użytkowników
         [HttpGet]
         [DisplayName("Get All")]
         public async Task<IEnumerable<User>> GetAll()
@@ -24,6 +27,7 @@ namespace AGADEapp.Controllers
             return await _userService.GetAllUsers();
         }
 
+        //Sprawdza czy dane logowania są poprawne i w pozytywnym przypadku zwraca obiekt User
         [HttpPost]
         [Route("Login")]
         public async Task<IActionResult> Login([FromForm] string login, [FromForm] string password)
@@ -33,6 +37,7 @@ namespace AGADEapp.Controllers
 
         }
 
+        //Wylogowuje użytkownika
         [HttpGet]
         [Route("Logout")]
         public async Task<IActionResult> Logout()
@@ -40,6 +45,7 @@ namespace AGADEapp.Controllers
             throw new NotImplementedException();
         }
 
+        //Dodaje użytkownika do bazy danych
         [HttpPost]
         [Route("Register")]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -49,6 +55,7 @@ namespace AGADEapp.Controllers
             return created == null ? NotFound() : Ok(created);
         }
 
+        //Usuwa użytkownika z bazy danych
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -63,6 +70,14 @@ namespace AGADEapp.Controllers
                 return BadRequest();
             }
             return Ok();
+        }
+
+        //Zwraca wszystkie wpisy DataFile danego użytkownika
+        [HttpGet]
+        [Route("{userId}/UserFiles")]
+        public async Task<IEnumerable<DataFile>> GetAllUser([FromRoute] int? userId)
+        {
+            return await _fileService.GetMyFiles(await _userService.GetUserName(userId));
         }
     }
 }

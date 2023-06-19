@@ -11,8 +11,6 @@ namespace AGADEapp.Models
         [Required]
         public int DataFileId { get; set; } // Klucz obcy
 
-        //public DataFile DataFile { get; set; } = null!; // Referencja do DataFile
-
         // Zadeklarowana relacja do History element
         public virtual ICollection<HistoryElement> Actions { get; set; } // Relacja jeden do wielu
 

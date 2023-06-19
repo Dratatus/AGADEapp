@@ -13,11 +13,8 @@ namespace AGADEapp.Models
 
         public DateTime OperationDate { get; set; }
 
-
         // Zadeklarowana relacja do DataFileHistory
         public virtual int DataFileHistoryId { get; set; } // Klucz obcy
-        //public int DataFileHistoryId { get; set; } // Klucz obcy
-        //public virtual DataFileHistory DataFileHistory { get; set; } // Referencja do DataFileHistory
 
         public HistoryElement() 
         {

@@ -24,7 +24,7 @@ namespace AGADEapp.Models
         public virtual DataFileHistory? DataFileHistory { get; set; } // Referencja do DataFileHistory
         //public DataFileHistory? DataFileHistory { get; set; } // Referencja do DataFileHistory
 
-        public static DataFile of(DataFileInit dto)
+        public static DataFile of(DataFileInit dto, string username)
         {
             if (dto is null)
             {
@@ -36,7 +36,7 @@ namespace AGADEapp.Models
                 Title = dto.Title,
                 ContentType = null,
                 Content = null,
-                Author = dto.Author,
+                Author = username,
                 Status = dto.Status,
 
                 DataFileHistory = null

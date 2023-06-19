@@ -16,9 +16,7 @@ namespace AGADEapp.Models
         public string Password { get; set; }
 
         // Zadeklarowana relacja do UserData
-
         public virtual UserData? UserData { get; set; } // Referencja do UserData
-        //public UserData? UserData { get; set; } // Referencja do UserData
 
         public static User of(UserRegister dto)
         {

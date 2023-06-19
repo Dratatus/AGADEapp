@@ -5,7 +5,7 @@
         Create,
         Upload,
         Download,
-        RemoveFile,
-        ChangeStatus
+        RemoveAttachment,
+        Update
     }
 }
