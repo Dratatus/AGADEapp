@@ -1,5 +1,6 @@
 ﻿using AGADEapp.Data.Configration;
 using AGADEapp.Models;
+using AGADEapp.Models.InputModels;
 using Microsoft.EntityFrameworkCore;
 using System.Runtime.CompilerServices;
 
@@ -22,16 +23,6 @@ namespace AGADEapp.Services
             };
 
             file.DataFileHistory.Actions.Add(new HistoryElement { Action = OperationType.Create, User = file.Author });
-
-            //DataFileHistory newData = new DataFileHistory 
-            //{
-            //    DataFileId = file.Id
-            //};
-
-            //newData.Actions.Add(new HistoryElement { Action = OperationType.Create, User = null });
-
-            //file.DataFileHistory = newData;
-
             await _fileDBcontext.DataFile.AddAsync(file);
             await _fileDBcontext.SaveChangesAsync();
             return file;
@@ -97,6 +88,19 @@ namespace AGADEapp.Services
             await _fileDBcontext.SaveChangesAsync();
 
             return fileToEdit;
+        }
+
+        public async Task<DataFile> Upload(string username, UploadFile obj, int fileId)
+        {
+            var edit = await GetFileById(fileId);
+            edit.Content = obj.file.FileName;
+            edit.ContentType = obj.file.ContentType;
+            await UpdateFile(fileId, edit);
+
+            edit.DataFileHistory.Actions.Add(new HistoryElement { Action = OperationType.Upload, User = username });
+            await _fileDBcontext.SaveChangesAsync();
+
+            return edit;
         }
     }
 }

@@ -65,9 +65,9 @@ namespace AGADEapp.Controllers
         }
 
         [HttpPost]
-        [Route("upload")]
+        [Route("{fileId}/upload")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> Upload([FromForm] UploadFile obj)
+        public async Task<IActionResult> Upload([FromRoute]int fileId, [FromForm]UploadFile obj, [FromForm] int userId)
         {
             if (obj.file.Length > 0)
             {
@@ -83,10 +83,7 @@ namespace AGADEapp.Controllers
                         obj.file.CopyTo(fileStream);
                         fileStream.Flush();
 
-                        var edit = await _fileService.GetFileById(obj.dataFileId);
-                        edit.Content = obj.file.FileName;
-                        edit.ContentType = obj.file.ContentType;
-                        await _fileService.UpdateFile(obj.dataFileId, edit);
+                        await _fileService.Upload(await _userService.GetUserName(userId), obj, fileId);
 
                         return Ok();
                     }
@@ -100,12 +97,12 @@ namespace AGADEapp.Controllers
         }
 
 
-        [HttpGet("{id}/download")]
+        [HttpGet("{fileId}/download")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Download(int id)
+        public async Task<IActionResult> Download(int fileId)
         {
-            var file = await _fileService.GetFileById(id);
+            var file = await _fileService.GetFileById(fileId);
 
             if (file == null)
             {

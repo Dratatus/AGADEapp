@@ -1,4 +1,5 @@
 ﻿using AGADEapp.Models;
+using AGADEapp.Models.InputModels;
 
 namespace AGADEapp.Services
 {
@@ -15,6 +16,8 @@ namespace AGADEapp.Services
         Task<DataFile> CreateFile(DataFile file);
 
         Task<DataFile?> UpdateFile(int id, DataFile file);
+
+        Task<DataFile?> Upload(string username, UploadFile obj, int fileId);
 
         Task DeleteFile(int id);
     }
