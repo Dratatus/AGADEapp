@@ -16,6 +16,16 @@ namespace AGADEapp.Services
         //Dodaje plik do bazy
         public async Task<DataFile> CreateFile(DataFile file)
         {
+            DataFileHistory newData = new DataFileHistory 
+            {
+                DataFileId = file.Id, 
+                
+            };
+
+            newData.Actions.Add(new HistoryElement { Action = OperationType.Create, User = null });
+
+            file.DataFileHistory = newData;
+
             await _fileDBcontext.DataFile.AddAsync(file);
             await _fileDBcontext.SaveChangesAsync();
             return file;
