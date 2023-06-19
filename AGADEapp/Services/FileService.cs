@@ -134,7 +134,7 @@ namespace AGADEapp.Services
         //Zwraca historie działań na danym pliku
         public async Task<List<HistoryElement>>? GetFileHistory(int fileId)
         {
-            var actions = _fileDBcontext.DataFileHistory.FirstOrDefault(a => a.DataFileId == fileId).Actions.ToList();
+            var actions = _fileDBcontext.DataFileHistory.Include(a => a.Actions).FirstOrDefault(a => a.DataFileId == fileId).Actions.ToList();
             return actions;
         }
     }
