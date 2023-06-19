@@ -9,16 +9,19 @@ namespace AGADEapp.Models
         [Required]
         public string Title { get; set; }
 
-        public string ContentType { get; set; }
+        public string? ContentType { get; set; }
 
         public string? Content { get; set; }
 
-        public string Author { get; set; }
+        [Required]
+        public string? Author { get; set; }
 
         public FileStatus Status { get; set; }
 
         // Zadeklarowana relacja do DataFileHistory
-        public DataFileHistory? DataFileHistory { get; set; } // Referencja do DataFileHistory
+
+        public virtual DataFileHistory? DataFileHistory { get; set; } // Referencja do DataFileHistory
+        //public DataFileHistory? DataFileHistory { get; set; } // Referencja do DataFileHistory
 
     }
 }
