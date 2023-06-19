@@ -69,9 +69,16 @@ namespace AGADEapp.Services
             return _userDBcontext.User.Include(a => a.UserData).ToList();
         }
 
-        public async Task<bool> IsAdmin(int id)
+        public async Task<bool> IsAdmin(int? id)
         {
-            return _userDBcontext.User.Include(a => a.UserData).FirstOrDefault(m => m.Id == id).UserData.IsAdmin;
+            var isAdmin = _userDBcontext.User.Include(a => a.UserData).FirstOrDefault(m => m.Id == id).UserData.IsAdmin;
+            return isAdmin;
+        }
+
+        public async Task<string> GetUserName(int? id)
+        {
+            var username = _userDBcontext.User.FirstOrDefault(m => m.Id == id).Login;
+            return username != null ? username : null;
         }
     }
 }

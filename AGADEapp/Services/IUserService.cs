@@ -11,6 +11,8 @@ namespace AGADEapp.Services
         Task RemoveUser(int id);
         Task Logout();
 
-        Task<bool> IsAdmin(int id);
+        Task<bool> IsAdmin(int? id);
+
+        Task<string> GetUserName(int? id);
     }
 }

@@ -55,6 +55,26 @@ namespace AGADEapp.Services
             return  _fileDBcontext.DataFile.Include(a => a.DataFileHistory).ToList();
         }
 
+        //Zwraca pliki na podstawie userId
+        public async Task<List<DataFile>> GetFiles(bool? isAdmin, string? username)
+        {
+            if(isAdmin == null)
+            {
+                return _fileDBcontext.DataFile.Include(a => a.DataFileHistory).Where(a => a.Status == FileStatus.Public).ToList();
+            }
+            else if ((bool)isAdmin)
+            {
+                return await GetAllFiles();
+            }
+            return _fileDBcontext.DataFile.Include(a => a.DataFileHistory).Where(a => a.Author == username || a.Status != FileStatus.Confidential).ToList();
+        }
+
+        //Zwraca pliki na podstawie userId
+        public async Task<List<DataFile>> GetMyFiles(string username)
+        {
+            return _fileDBcontext.DataFile.Include(a => a.DataFileHistory).Where(a => a.Author == username).ToList();
+        }
+
         //Zwraca konkretny plik po id
         public async Task<DataFile> GetFileById(int id)
         {

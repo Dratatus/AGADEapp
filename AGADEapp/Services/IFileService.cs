@@ -6,6 +6,10 @@ namespace AGADEapp.Services
     {
         Task<List<DataFile>> GetAllFiles();
 
+        Task<List<DataFile>> GetFiles(bool? isAdmin, string? username);
+
+        Task<List<DataFile>> GetMyFiles(string username);
+
         Task<DataFile?> GetFileById(int id);
 
         Task<DataFile> CreateFile(DataFile file);

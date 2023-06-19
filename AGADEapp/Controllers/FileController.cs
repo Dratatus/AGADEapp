@@ -16,22 +16,34 @@ namespace AGADEapp.Controllers
     {
         private readonly IFileService _fileService;
         private readonly IUserService _userService;
-        private readonly FileDBContext _fileDBcontext;
 
         private static IWebHostEnvironment _webHostEnvironment;
         public FileController(FileDBContext dBContext, IFileService fileService, IUserService userService, IWebHostEnvironment webHostEnvironment)
         {
             _fileService = fileService;
             _userService = userService;
-            _fileDBcontext = dBContext;
             _webHostEnvironment = webHostEnvironment;
         }
 
         [HttpGet]
         [DisplayName("Get All")]
-        public async Task<IEnumerable<DataFile>> GetAll()
+        public async Task<IEnumerable<DataFile>> GetAll([FromQuery] int? userId)
         {
-            return await _fileService.GetAllFiles();
+            if (userId == null)
+            {
+                return await _fileService.GetFiles(null, null);
+            }
+            else
+            {
+                return await _fileService.GetFiles(await _userService.IsAdmin(userId), await _userService.GetUserName(userId));
+            }
+        }
+
+        [HttpGet]
+        [Route("{userId}/UserFiles")]
+        public async Task<IEnumerable<DataFile>> GetAllUser([FromRoute] int? userId)
+        {
+            return await _fileService.GetMyFiles(await _userService.GetUserName(userId));
         }
 
         [HttpGet("{id}")]
