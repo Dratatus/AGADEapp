@@ -27,12 +27,12 @@ namespace AGADEapp.Data.Configration
             );
 
             modelBuilder.Entity<DataFileHistory>().HasData(
-                new DataFileHistory() { Id = 1, DataFileId = 1, Actions = new List<HistoryElement>() },
-                new DataFileHistory() { Id = 2, DataFileId = 2, Actions = new List<HistoryElement>() },
-                new DataFileHistory() { Id = 3, DataFileId = 3, Actions = new List<HistoryElement>() },
-                new DataFileHistory() { Id = 4, DataFileId = 4, Actions = new List<HistoryElement>() },
-                new DataFileHistory() { Id = 5, DataFileId = 5, Actions = new List<HistoryElement>() },
-                new DataFileHistory() { Id = 6, DataFileId = 6, Actions = new List<HistoryElement>() }
+                new DataFileHistory() { Id = 1, DataFileId = 1},
+                new DataFileHistory() { Id = 2, DataFileId = 2},
+                new DataFileHistory() { Id = 3, DataFileId = 3},
+                new DataFileHistory() { Id = 4, DataFileId = 4},
+                new DataFileHistory() { Id = 5, DataFileId = 5},
+                new DataFileHistory() { Id = 6, DataFileId = 6}
             );
 
             modelBuilder.Entity<HistoryElement>().HasData(

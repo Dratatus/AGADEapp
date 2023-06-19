@@ -16,9 +16,9 @@ namespace AGADEapp.Data.Configration
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>().HasData(
-                new User() { Id = 1, Login = "test1@fake.fake", Password = "Password1", UserData = new UserData() },
-                new User() { Id = 2, Login = "test2@fake.fake", Password = "Password2", UserData = new UserData() },
-                new User() { Id = 3, Login = "admin1@fake.fake", Password = "AdminPassword1", UserData = new UserData() }
+                new User() { Id = 1, Login = "test1@fake.fake", Password = "Password1"},
+                new User() { Id = 2, Login = "test2@fake.fake", Password = "Password2"},
+                new User() { Id = 3, Login = "admin1@fake.fake", Password = "AdminPassword1"}
             );
 
             modelBuilder.Entity<UserData>().HasData(
