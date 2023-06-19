@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
+using AGADEapp.Models.InputModels;
 
 namespace AGADEapp.Models
 {

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace AGADEapp.Models
+namespace AGADEapp.Models.InputModels
 {
     public class DataFileInit
     {
@@ -8,7 +8,7 @@ namespace AGADEapp.Models
         public string Title { get; set; }
 
         [Required]
-        public string? Author { get; set; }
+        public string Author { get; set; }
 
         public FileStatus Status { get; set; } = FileStatus.Public;
     }

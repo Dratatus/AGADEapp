@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace AGADEapp.Models
+namespace AGADEapp.Models.InputModels
 {
     public class UploadFile
     {

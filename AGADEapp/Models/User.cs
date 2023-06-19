@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using AGADEapp.Models.InputModels;
+using System.ComponentModel.DataAnnotations;
 using System.Reflection.Metadata;
 
 namespace AGADEapp.Models
@@ -18,5 +19,20 @@ namespace AGADEapp.Models
 
         public virtual UserData? UserData { get; set; } // Referencja do UserData
         //public UserData? UserData { get; set; } // Referencja do UserData
+
+        public static User of(UserRegister dto)
+        {
+            if (dto is null)
+            {
+                return null;
+            }
+            return new User()
+            {
+                Id = 0,
+                Login = dto.Login,
+                Password = dto.Password,
+                UserData = null
+            };
+        }
     }
 }

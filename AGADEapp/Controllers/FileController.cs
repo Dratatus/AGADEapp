@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Runtime.InteropServices;
 using AGADEapp.Services;
 using System.ComponentModel;
+using AGADEapp.Models.InputModels;
 
 namespace AGADEapp.Controllers
 {

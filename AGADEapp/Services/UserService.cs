@@ -1,5 +1,6 @@
 ﻿using AGADEapp.Data.Configration;
 using AGADEapp.Models;
+using AGADEapp.Models.InputModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace AGADEapp.Services
@@ -13,9 +14,9 @@ namespace AGADEapp.Services
         }
 
         //Zwraca dane zalogowanego użytkownika po sprawdzeniu loginu i hasła
-        public User Login(string login, string password)
+        public async Task<User> Login(string login, string password)
         {
-            var user = _userDBcontext.User.FirstOrDefault(m => m.Login == login);
+            var user = _userDBcontext.User.Include(a => a.UserData).FirstOrDefault(m => m.Login == login);
             if (user.Password == password)
             {
                 return user;
@@ -24,42 +25,53 @@ namespace AGADEapp.Services
         }
 
         //Nie mam pojęcia jak ma działać logout w tym wypadku
-        public void Logout()
+        public Task Logout()
         {
             throw new NotImplementedException();
         }
 
         //Tworzy nowego użytkownika oraz zwraca obiekt
-        public User Register(string login, string password, string nickname, string name, string surname)
+        public async Task<User> Register(UserRegister user)
         {
-            User newUser = new User()
+            User newUser = User.of(user);
+            User userToAdd = new User()
             {
-                Login = login,
-                Password = password,
+                Login = newUser.Login,
+                Password = newUser.Password,
                 UserData = new UserData()
                 {
                     IsAdmin = false,
-                    Nickname = nickname,
-                    Name = name,
-                    Surname = surname
+                    Nickname = user.Nickname,
+                    Name = user.Name,
+                    Surname = user.Surname
                 }
             };
-            _userDBcontext.User.AddAsync(newUser);
-            _userDBcontext.SaveChangesAsync();
+            await _userDBcontext.User.AddAsync(userToAdd);
+            await _userDBcontext.SaveChangesAsync();
 
             return newUser;
         }
 
         //Nie wiem czy usunięcie Usera automatycznie usuwa UserData, trzeba przetestować
         //Usuwa użytkownika po id
-        public void RemoveUser(int id)
+        public async Task RemoveUser(int id)
         {
-            var userToDelete = _userDBcontext.User.Find(id);
+            var userToDelete = await _userDBcontext.User.FindAsync(id);
             if (userToDelete is not null)
             {
                 _userDBcontext.User.Remove(userToDelete);
                 _userDBcontext.SaveChanges();
             }
+        }
+
+        public async Task<List<User>> GetAllUsers()
+        {
+            return _userDBcontext.User.Include(a => a.UserData).ToList();
+        }
+
+        public async Task<bool> IsAdmin(int id)
+        {
+            return _userDBcontext.User.Include(a => a.UserData).FirstOrDefault(m => m.Id == id).UserData.IsAdmin;
         }
     }
 }
