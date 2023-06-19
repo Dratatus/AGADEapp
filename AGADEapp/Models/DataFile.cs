@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Runtime.CompilerServices;
 
 namespace AGADEapp.Models
 {
@@ -23,5 +24,23 @@ namespace AGADEapp.Models
         public virtual DataFileHistory? DataFileHistory { get; set; } // Referencja do DataFileHistory
         //public DataFileHistory? DataFileHistory { get; set; } // Referencja do DataFileHistory
 
+        public static DataFile of(DataFileInit dto)
+        {
+            if (dto is null)
+            {
+                return null;
+            }
+            return new DataFile()
+            {
+                Id = 0,
+                Title = dto.Title,
+                ContentType = null,
+                Content = null,
+                Author = dto.Author,
+                Status = dto.Status,
+
+                DataFileHistory = null
+            };
+        }
     }
 }

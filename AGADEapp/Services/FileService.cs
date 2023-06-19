@@ -16,15 +16,21 @@ namespace AGADEapp.Services
         //Dodaje plik do bazy
         public async Task<DataFile> CreateFile(DataFile file)
         {
-            DataFileHistory newData = new DataFileHistory 
+            file.DataFileHistory = new DataFileHistory
             {
-                DataFileId = file.Id, 
-                
+                DataFileId = file.Id
             };
 
-            newData.Actions.Add(new HistoryElement { Action = OperationType.Create, User = null });
+            file.DataFileHistory.Actions.Add(new HistoryElement { Action = OperationType.Create, User = file.Author });
 
-            file.DataFileHistory = newData;
+            //DataFileHistory newData = new DataFileHistory 
+            //{
+            //    DataFileId = file.Id
+            //};
+
+            //newData.Actions.Add(new HistoryElement { Action = OperationType.Create, User = null });
+
+            //file.DataFileHistory = newData;
 
             await _fileDBcontext.DataFile.AddAsync(file);
             await _fileDBcontext.SaveChangesAsync();
@@ -46,7 +52,7 @@ namespace AGADEapp.Services
         //Zwraca wszystkie pliki
         public async Task<List<DataFile>> GetAllFiles()
         {
-            return  _fileDBcontext.DataFile.ToList();
+            return  _fileDBcontext.DataFile.Include(a => a.DataFileHistory).ToList();
         }
 
         //Zwraca konkretny plik po id

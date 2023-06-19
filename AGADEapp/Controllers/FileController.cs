@@ -45,9 +45,9 @@ namespace AGADEapp.Controllers
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> Create(DataFile file)
+        public async Task<IActionResult> Create([FromForm]DataFileInit file)
         {
-            var created = await _fileService.CreateFile(file);
+            var created = await _fileService.CreateFile(DataFile.of(file));
             return created == null ? NotFound() : Ok(created);
         }
 
