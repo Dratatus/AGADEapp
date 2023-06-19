@@ -15,7 +15,6 @@ namespace AGADEapp.Models
 
         public string? Content { get; set; }
 
-        [Required]
         public string? Author { get; set; }
 
         public FileStatus Status { get; set; }
