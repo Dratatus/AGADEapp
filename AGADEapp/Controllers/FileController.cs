@@ -10,7 +10,7 @@ using AGADEapp.Models.InputModels;
 
 namespace AGADEapp.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/files")]
     [ApiController]
     public class FileController : ControllerBase
     {
@@ -27,7 +27,6 @@ namespace AGADEapp.Controllers
 
         //Zwraca wszystkie dozwolone do wglądu wpisy DataFile na podstawie uprawnień po podanym userId
         [HttpGet]
-        [DisplayName("Get All")]
         public async Task<IEnumerable<DataFile>> GetAll([FromQuery] int? userId)
         {
             if (userId == null)
@@ -58,15 +57,24 @@ namespace AGADEapp.Controllers
             return created == null ? NotFound() : Ok(created);
         }
 
+        //Zwraca pojedyńczy wpis file
+        [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<DataFile> Download(int id)
+        {
+            return await _fileService.GetFileById(id);
+        }
+
         //zapisuje w katalogu wwwroot przesłany plik, oraz jego informacjie w odpowiednim wpisie DataFile, przyznaje dostęp na podstawie ID użytkownika
         [HttpPost]
-        [Route("{fileId}/Upload_attachment")]
+        [Route("{id}/upload")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> Upload([FromRoute]int fileId, [FromForm]UploadFile obj, [FromForm] int userId)
+        public async Task<IActionResult> Upload([FromRoute]int id, [FromForm]UploadFile obj, [FromForm] int userId)
         {
             if (obj.file.Length > 0)
             {
-                if (!Authorize(userId, fileId, _fileService.GetFileById(fileId).Result.Status))
+                if (!Authorize(userId, id, _fileService.GetFileById(id).Result.Status))
                 {
                     return Unauthorized();
                 }
@@ -82,7 +90,7 @@ namespace AGADEapp.Controllers
                         obj.file.CopyTo(fileStream);
                         fileStream.Flush();
 
-                        await _fileService.Upload(await _userService.GetUserName(userId), obj, fileId);
+                        await _fileService.Upload(await _userService.GetUserName(userId), obj, id);
 
                         return Ok();
                     }
@@ -96,19 +104,19 @@ namespace AGADEapp.Controllers
         }
 
         //Sprawdza czy podany użytkownik jest upoważniony do pobrania załączonego pliku oraz przesyła go po poprawnej autoryzacji
-        [HttpGet("{fileId}/Download_attachment")]
+        [HttpGet("{id}/download")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Download(int fileId, [FromQuery] int? userId)
+        public async Task<IActionResult> DownloadAttachment(int id, [FromQuery] int? userId)
         {
-            var file = await _fileService.GetFileById(fileId);
+            var file = await _fileService.GetFileById(id);
 
             if (file == null)
             {
                 return NotFound();
             }
 
-            if (!Authorize(userId, fileId, file.Status))
+            if (!Authorize(userId, id, file.Status))
             {
                 return Unauthorized();
             }
@@ -127,18 +135,18 @@ namespace AGADEapp.Controllers
             }
             memoryStream.Position = 0;
 
-            await _fileService.ConfirmDownload(await _userService.GetUserName(userId), fileId);
+            await _fileService.ConfirmDownload(await _userService.GetUserName(userId), id);
 
             return File(memoryStream, file.ContentType, file.Content);
         }
 
         //Sprawdza czy załączony użytkownik jest administratorem oraz usuwa plik po poprawnej weryfikacji
-        [HttpDelete("{fileId}/Remove_attachment")]
+        [HttpDelete("{id}/clear")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> RemoveAttachment(int fileId, [FromQuery] int? userId)
+        public async Task<IActionResult> RemoveAttachment(int id, [FromQuery] int? userId)
         {
-            var file = await _fileService.GetFileById(fileId);
+            var file = await _fileService.GetFileById(id);
 
             if (file == null)
             {
@@ -159,22 +167,22 @@ namespace AGADEapp.Controllers
 
             System.IO.File.Delete(filePath);
 
-            await _fileService.RemoveAttachment(await _userService.GetUserName(userId), fileId);
+            await _fileService.RemoveAttachment(await _userService.GetUserName(userId), id);
 
             return Ok();
         }
 
         //Sprawdza czy podany użytkownik jest upoważniony do pobrania załączonego pliku oraz przesyła go po poprawnej autoryzacji
-        [HttpGet("{fileId}/See_history")]
+        [HttpGet("{id}/history")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> ShowHistory(int fileId, [FromQuery] int userId)
+        public async Task<IActionResult> ShowHistory(int id, [FromQuery] int userId)
         {
             if (!await _userService.IsAdmin(userId))
             {
                 return Unauthorized();
             }
-            var history = await _fileService.GetFileHistory(fileId);
+            var history = await _fileService.GetFileHistory(id);
             if (history == null)
             {
                 return NotFound();
@@ -184,24 +192,24 @@ namespace AGADEapp.Controllers
         }
 
         //Aktualizuje informacje o danym pliku w oparciu o uprawnienia podanego użytkownika
-        [HttpPut("{fileId}")]
+        [HttpPatch("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UpdateFile(int fileId, DataFileInit file, [FromQuery] int userId)
+        public async Task<IActionResult> UpdateFile(int id, DataFileInit file, [FromQuery] int userId)
         {
-            if(!await _userService.IsAdmin(userId) && !await _fileService.IsOwner(await _userService.GetUserName(userId), fileId))
+            if(!await _userService.IsAdmin(userId) && !await _fileService.IsOwner(await _userService.GetUserName(userId), id))
             {
                 return Unauthorized();
             }
-            var _file = await _fileService.UpdateFile(fileId, DataFile.of(file, await _userService.GetUserName(userId)), await _userService.GetUserName(userId));
+            var _file = await _fileService.UpdateFile(id, DataFile.of(file, await _userService.GetUserName(userId)), await _userService.GetUserName(userId));
             return _file == null ? NotFound() : Ok(file);
         }
 
         //Usuwa dany wpis o pliku (tylko admin)
-        [HttpDelete("{fileId}")]
+        [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Delete(int fileId, [FromQuery] int userId)
+        public async Task<IActionResult> Delete(int id, [FromQuery] int userId)
         {
             if (await _userService.IsAdmin(userId))
             {
@@ -209,7 +217,7 @@ namespace AGADEapp.Controllers
             }
             try
             {
-                await _fileService.DeleteFile(fileId);
+                await _fileService.DeleteFile(id);
             } catch 
             {
                 return BadRequest();
