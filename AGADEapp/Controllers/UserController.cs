@@ -6,7 +6,7 @@ using System.ComponentModel;
 
 namespace AGADEapp.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/users")]
     [ApiController]
     public class UserController : ControllerBase
     {
@@ -29,7 +29,7 @@ namespace AGADEapp.Controllers
 
         //Sprawdza czy dane logowania są poprawne i w pozytywnym przypadku zwraca obiekt User
         [HttpPost]
-        [Route("Login")]
+        [Route("login")]
         public async Task<IActionResult> Login([FromForm] string login, [FromForm] string password)
         {
             var loggedIn = await _userService.Login(login, password);
@@ -39,7 +39,7 @@ namespace AGADEapp.Controllers
 
         //Wylogowuje użytkownika
         [HttpGet]
-        [Route("Logout")]
+        [Route("logout")]
         public async Task<IActionResult> Logout()
         {
             throw new NotImplementedException();
@@ -47,7 +47,7 @@ namespace AGADEapp.Controllers
 
         //Dodaje użytkownika do bazy danych
         [HttpPost]
-        [Route("Register")]
+        [Route("register")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<IActionResult> Register([FromForm] UserRegister user)
         {
@@ -74,10 +74,10 @@ namespace AGADEapp.Controllers
 
         //Zwraca wszystkie wpisy DataFile danego użytkownika
         [HttpGet]
-        [Route("{userId}/UserFiles")]
-        public async Task<IEnumerable<DataFile>> GetAllUser([FromRoute] int? userId)
+        [Route("{id}/files")]
+        public async Task<IEnumerable<DataFile>> GetAllUser([FromRoute] int? id)
         {
-            return await _fileService.GetMyFiles(await _userService.GetUserName(userId));
+            return await _fileService.GetMyFiles(await _userService.GetUserName(id));
         }
     }
 }
